@@ -1,3 +1,4 @@
+
 const boardElement = document.getElementById('board');
 const statusText = document.getElementById('status');
 const modeSelect = document.getElementById('mode');
@@ -35,7 +36,7 @@ function makeMove(index) {
     return;
   }
 
-  setTimeout(aiMove, 300); // Small delay for AI
+  setTimeout(aiMove, 300); // small delay
 }
 
 function aiMove() {
@@ -68,11 +69,11 @@ function aiMove() {
 
 function checkWinner(p) {
   const wins = [
-    [0,1,2], [3,4,5], [6,7,8], // rows
-    [0,3,6], [1,4,7], [2,5,8], // cols
-    [0,4,8], [2,4,6]           // diagonals
+    [0,1,2], [3,4,5], [6,7,8],
+    [0,3,6], [1,4,7], [2,5,8],
+    [0,4,8], [2,4,6]
   ];
-  return wins.some(comb => comb.every(i => board[i] === p));
+  return wins.some(combo => combo.every(i => board[i] === p));
 }
 
 function bestMove() {
@@ -92,19 +93,19 @@ function bestMove() {
   return move;
 }
 
-function minimax(newBoard, depth, isMaximizing) {
+function minimax(newBoard, depth, isMax) {
   if (checkWinner(ai)) return 10 - depth;
   if (checkWinner(player)) return depth - 10;
   if (newBoard.every(cell => cell !== "")) return 0;
 
-  if (isMaximizing) {
+  if (isMax) {
     let best = -Infinity;
     for (let i = 0; i < 9; i++) {
       if (newBoard[i] === "") {
         newBoard[i] = ai;
         let score = minimax(newBoard, depth + 1, false);
         newBoard[i] = "";
-        best = Math.max(score, best);
+        best = Math.max(best, score);
       }
     }
     return best;
@@ -115,7 +116,7 @@ function minimax(newBoard, depth, isMaximizing) {
         newBoard[i] = player;
         let score = minimax(newBoard, depth + 1, true);
         newBoard[i] = "";
-        best = Math.min(score, best);
+        best = Math.min(best, score);
       }
     }
     return best;
