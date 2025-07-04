@@ -1,162 +1,93 @@
-const boardElem = document.getElementById("game-board");
-const messageElem = document.getElementById("message");
-const restartBtn = document.getElementById("restart");
-const difficultySelect = document.getElementById("difficulty");
+let boxes = document.querySelectorAll(".box");
+let resetBtn = document.querySelector("#reset-btn");
+let newGameBtn = document.querySelector("#new-btn");
+let msgContainer = document.querySelector(".msg-container");
+let msg = document.querySelector("#msg");
 
-let board = Array(9).fill(null); // 0-8 positions
-let currentPlayer = "X"; // player always X, AI always O
-let gameActive = true;
-let difficulty = "easy";
+let turnO = true; // playerO's turn
+let count = 0; // To track draw
 
-const winCombos = [
-  [0,1,2],[3,4,5],[6,7,8], // rows
-  [0,3,6],[1,4,7],[2,5,8], // cols
-  [0,4,8],[2,4,6]          // diags
+const winPatterns = [
+  [0, 1, 2],
+  [0, 3, 6],
+  [0, 4, 8],
+  [1, 4, 7],
+  [2, 5, 8],
+  [2, 4, 6],
+  [3, 4, 5],
+  [6, 7, 8],
 ];
 
-// UI setup
-function createBoard() {
-  boardElem.innerHTML = "";
-  for (let i = 0; i < 9; i++) {
-    const cell = document.createElement("div");
-    cell.classList.add("cell");
-    cell.dataset.idx = i;
-    cell.addEventListener("click", handleCellClick);
-    cell.textContent = board[i] || "";
-    boardElem.appendChild(cell);
-  }
-}
-createBoard();
+const resetGame = () => {
+  turnO = true;
+  count = 0;
+  enableBoxes();
+  msg.innerText = "";
+  msgContainer.classList.add("hide");
+};
 
-function setMessage(msg) {
-  messageElem.textContent = msg;
-}
-
-// Game logic
-function handleCellClick(e) {
-  const idx = +e.target.dataset.idx;
-  if (!gameActive || board[idx]) return;
-  makeMove(idx, currentPlayer);
-  if (checkGameOver()) return;
-  setTimeout(() => {
-    aiMove();
-    checkGameOver();
-  }, 250);
-}
-
-function makeMove(idx, player) {
-  if (board[idx] || !gameActive) return false;
-  board[idx] = player;
-  updateUI();
-  return true;
-}
-
-function updateUI() {
-  Array.from(boardElem.children).forEach((cell, i) => {
-    cell.textContent = board[i] || "";
-  });
-}
-
-function emptyIndices(brd = board) {
-  return brd.map((v, i) => v ? null : i).filter(v => v !== null);
-}
-
-function checkWinner(brd = board) {
-  for (let combo of winCombos) {
-    const [a, b, c] = combo;
-    if (brd[a] && brd[a] === brd[b] && brd[a] === brd[c]) return brd[a];
-  }
-  return null;
-}
-
-function checkGameOver() {
-  const winner = checkWinner();
-  if (winner) {
-    setMessage(winner === "X" ? "You win! 🎉" : "AI wins! 🤖");
-    gameActive = false;
-    return true;
-  }
-  if (emptyIndices().length === 0) {
-    setMessage("It's a draw!");
-    gameActive = false;
-    return true;
-  }
-  setMessage(currentPlayer === "X" ? "Your turn!" : "AI's turn...");
-  return false;
-}
-
-// AI logic
-function aiMove() {
-  if (!gameActive) return;
-  let idx;
-  if (difficulty === "easy") {
-    // Random available
-    const options = emptyIndices();
-    idx = options[Math.floor(Math.random() * options.length)];
-  } else {
-    // Hard: Minimax
-    idx = minimax(board, "O").idx;
-  }
-  makeMove(idx, "O");
-  currentPlayer = "X";
-}
-
-function minimax(newBoard, player) {
-  const availSpots = emptyIndices(newBoard);
-  const winner = checkWinner(newBoard);
-  if (winner === "X") return {score: -10};
-  if (winner === "O") return {score: 10};
-  if (availSpots.length === 0) return {score: 0};
-
-  let moves = [];
-  for (let i = 0; i < availSpots.length; i++) {
-    const idx = availSpots[i];
-    let move = {};
-    move.idx = idx;
-    newBoard[idx] = player;
-    if (player === "O") {
-      move.score = minimax(newBoard, "X").score;
+boxes.forEach((box) => {
+  box.addEventListener("click", () => {
+    if (turnO) {
+      box.innerText = "O";
+      box.style.color = "#b0413e";
+      turnO = false;
     } else {
-      move.score = minimax(newBoard, "O").score;
+      box.innerText = "X";
+      box.style.color = "#2167af";
+      turnO = true;
     }
-    newBoard[idx] = null;
-    moves.push(move);
-  }
+    box.disabled = true;
+    count++;
+    let isWinner = checkWinner();
+    if (count === 9 && !isWinner) {
+      gameDraw();
+    }
+  });
+});
 
-  let bestMove;
-  if (player === "O") {
-    let bestScore = -Infinity;
-    for (let i = 0; i < moves.length; i++) {
-      if (moves[i].score > bestScore) {
-        bestScore = moves[i].score;
-        bestMove = moves[i];
-      }
-    }
-  } else {
-    let bestScore = Infinity;
-    for (let i = 0; i < moves.length; i++) {
-      if (moves[i].score < bestScore) {
-        bestScore = moves[i].score;
-        bestMove = moves[i];
-      }
-    }
-  }
-  return bestMove;
-}
-
-// Controls
-restartBtn.onclick = () => {
-  board = Array(9).fill(null);
-  currentPlayer = "X";
-  gameActive = true;
-  setMessage("Your turn!");
-  createBoard();
+const gameDraw = () => {
+  msg.innerText = "Game was a Draw.";
+  msgContainer.classList.remove("hide");
+  disableBoxes();
 };
 
-difficultySelect.onchange = (e) => {
-  difficulty = e.target.value;
-  restartBtn.click();
+const disableBoxes = () => {
+  for (let box of boxes) {
+    box.disabled = true;
+  }
 };
 
-// Start message
-setMessage("Your turn!");
+const enableBoxes = () => {
+  for (let box of boxes) {
+    box.disabled = false;
+    box.innerText = "";
+    box.style.backgroundColor = "#ffffc7";
+  }
+};
+
+const showWinner = (winner, pattern) => {
+  msg.innerText = `Congratulations, Winner is ${winner}`;
+  msgContainer.classList.remove("hide");
+  for (let index of pattern) {
+    boxes[index].style.backgroundColor = "#90ee90"; // highlight
+  }
+  disableBoxes();
+};
+
+const checkWinner = () => {
+  for (let pattern of winPatterns) {
+    let pos1Val = boxes[pattern[0]].innerText;
+    let pos2Val = boxes[pattern[1]].innerText;
+    let pos3Val = boxes[pattern[2]].innerText;
+
+    if (pos1Val !== "" && pos1Val === pos2Val && pos2Val === pos3Val) {
+      showWinner(pos1Val, pattern);
+      return true;
+    }
+  }
+  return false;
+};
+
+newGameBtn.addEventListener("click", resetGame);
+resetBtn.addEventListener("click", resetGame);
