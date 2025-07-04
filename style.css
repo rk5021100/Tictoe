@@ -7,8 +7,9 @@ body {
 .board {
   display: grid;
   grid-template-columns: repeat(3, 100px);
+  grid-gap: 5px;
+  justify-content: center;
   margin: 20px auto;
-  gap: 5px;
 }
 
 .cell {
@@ -20,9 +21,10 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  border: 1px solid #aaa;
 }
 
 .cell.taken {
-  pointer-events: none;
   background-color: #ddd;
+  pointer-events: none;
 }
