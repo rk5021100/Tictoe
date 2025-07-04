@@ -1,10 +1,11 @@
+
 let boxes = document.querySelectorAll(".box");
 let resetBtn = document.querySelector("#reset-btn");
 let newGameBtn = document.querySelector("#new-btn");
 let msgContainer = document.querySelector(".msg-container");
 let msg = document.querySelector("#msg");
 
-let turnO = true; // true if it's player turn (O)
+let turnO = true;
 let count = 0;
 
 const winPatterns = [
@@ -32,24 +33,21 @@ const gameDraw = () => {
 };
 
 const disableBoxes = () => {
-  for (let box of boxes) {
-    box.disabled = true;
-  }
+  boxes.forEach((box) => (box.disabled = true));
 };
 
 const enableBoxes = () => {
-  for (let box of boxes) {
+  boxes.forEach((box) => {
     box.disabled = false;
     box.innerText = "";
     box.classList.remove("win");
-  }
+  });
 };
 
 const showWinner = (winner, pattern) => {
   msg.innerText = `Congratulations, Winner is ${winner}`;
   msgContainer.classList.remove("hide");
 
-  // Highlight winning boxes
   pattern.forEach((index) => {
     boxes[index].classList.add("win");
   });
@@ -59,22 +57,20 @@ const showWinner = (winner, pattern) => {
 
 const checkWinner = () => {
   for (let pattern of winPatterns) {
-    let pos1Val = boxes[pattern[0]].innerText;
-    let pos2Val = boxes[pattern[1]].innerText;
-    let pos3Val = boxes[pattern[2]].innerText;
+    let a = boxes[pattern[0]].innerText;
+    let b = boxes[pattern[1]].innerText;
+    let c = boxes[pattern[2]].innerText;
 
-    if (pos1Val !== "" && pos2Val !== "" && pos3Val !== "") {
-      if (pos1Val === pos2Val && pos2Val === pos3Val) {
-        showWinner(pos1Val, pattern);
-        return true;
-      }
+    if (a !== "" && a === b && b === c) {
+      showWinner(a, pattern);
+      return true;
     }
   }
   return false;
 };
 
-// User move
-boxes.forEach((box, index) => {
+// Handle player's turn (O)
+boxes.forEach((box) => {
   box.addEventListener("click", () => {
     if (turnO && box.innerText === "") {
       box.innerText = "O";
@@ -88,16 +84,34 @@ boxes.forEach((box, index) => {
       }
 
       turnO = false;
-      setTimeout(() => aiMove(), 300);
+      setTimeout(() => aiMove(), 100); // short delay for realism
     }
   });
 });
 
-// AI move (Minimax)
 const aiMove = () => {
+  // 🔥 Hardcode fast smart first move
+  if (count === 1) {
+    if (boxes[4].innerText === "") {
+      boxes[4].innerText = "X";
+      boxes[4].disabled = true;
+    } else {
+      boxes[0].innerText = "X";
+      boxes[0].disabled = true;
+    }
+    count++;
+    if (checkWinner()) return;
+    if (count === 9) {
+      gameDraw();
+      return;
+    }
+    turnO = true;
+    return;
+  }
+
+  // 🔁 Regular Minimax AI logic
   let bestScore = -Infinity;
   let move;
-
   boxes.forEach((box, index) => {
     if (box.innerText === "") {
       box.innerText = "X";
@@ -123,7 +137,7 @@ const aiMove = () => {
   turnO = true;
 };
 
-// Minimax algorithm
+// 🔍 Minimax Algorithm
 const minimax = (boardState, depth, isMaximizing) => {
   let result = evaluate(boardState);
   if (result !== null) return result;
@@ -153,7 +167,7 @@ const minimax = (boardState, depth, isMaximizing) => {
   }
 };
 
-// Evaluate board state
+// 🧠 Score Evaluation
 const evaluate = (board) => {
   for (let pattern of winPatterns) {
     let a = board[pattern[0]].innerText;
@@ -162,18 +176,16 @@ const evaluate = (board) => {
 
     if (a === b && b === c && a !== "") {
       if (a === "X") return 10;
-      else if (a === "O") return -10;
+      if (a === "O") return -10;
     }
   }
 
-  // Check draw
   let isDraw = true;
   boxes.forEach((box) => {
     if (box.innerText === "") isDraw = false;
   });
 
   if (isDraw) return 0;
-
   return null;
 };
 
