@@ -1,20 +1,31 @@
 body {
   font-family: sans-serif;
   text-align: center;
-  margin-top: 50px;
+  margin: 0;
+  padding: 20px;
+  background-color: #fff;
+}
+
+h1 {
+  font-size: 2em;
+}
+
+#modeSelect {
+  margin: 10px 0;
 }
 
 .board {
   display: grid;
-  grid-template-columns: repeat(3, 100px);
-  grid-gap: 5px;
-  justify-content: center;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  width: 90vw;
+  max-width: 300px;
   margin: 20px auto;
 }
 
 .cell {
-  width: 100px;
-  height: 100px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
   background-color: #eee;
   font-size: 2em;
   display: flex;
@@ -27,4 +38,16 @@ body {
 .cell.taken {
   background-color: #ddd;
   pointer-events: none;
+}
+
+#status {
+  font-weight: bold;
+  margin: 15px;
+}
+
+button {
+  padding: 8px 16px;
+  font-size: 1em;
+  margin: 10px;
+  cursor: pointer;
 }
